@@ -5,7 +5,7 @@ let P=store.get(KEY,{});            // card id -> {b: box 0..4, d: due timestamp
 const DAY=864e5,IV=[0,1,2,4,7];     // days until a card in each box comes back
 const save=()=>store.set(KEY,P);
 const S={tab:"study",deck:"muscle",region:"All",mode:"smart",queue:[],idx:0,done:0,flipped:false,q:"",browse:"muscle",
-  sex:store.get("otr_sex","f"),gm:null,amode:"muscle",aview:window.innerWidth>=1240?"both":"a",sel:null,quiz:null,qtopics:{muscle:1,diagram:1,move:1,skel:1,term:0,clin:1},qlen:10};
+  sex:store.get("otr_sex","f"),gm:null,amode:"muscle",aview:window.innerWidth>=1240?"both":"a",sel:null,quiz:null,qtopics:{muscle:1,diagram:1,move:1,skel:1,term:0,clin:1,nbcot:1},qlen:10};
 
 FIG.setSex(S.sex);
 
@@ -39,7 +39,7 @@ function whereJ(n,cls){const j=FIG.JDOTS.find(x=>x[0]===n);if(!j)return"";let x=
 function whereR(rs,cls){const b=REGBOX[rs[0]];return `<div class="where ${cls||""}">${FIG.svg({view:"a",mode:"bone",mini:true,joints:false,crop:FIG.cropBox([b],6,90)})}<small>${esc(regNames(rs))}</small></div>`}
 
 /* ============================ CARDS ============================ */
-const DECKS=[["muscle","Muscles: name → origin, insertion, action, nerve"],["reverse","Muscles: attachments → name"],["diagram","Identify the muscle on the figure"],["move","Movements → muscles"],["bone","Bone landmarks"],["joint","Joints"],["lig","Ligaments"],["clin","OT clinical anatomy"],["term","Terminology"],["all","Everything"]];
+const DECKS=[["muscle","Muscles: name → origin, insertion, action, nerve"],["reverse","Muscles: attachments → name"],["diagram","Identify the muscle on the figure"],["move","Movements → muscles"],["bone","Bone landmarks"],["joint","Joints"],["lig","Ligaments"],["clin","OT clinical anatomy"],["nbcot","NBCOT exam prep"],["term","Terminology"],["all","Everything"]];
 let _cards=null;
 function allCards(){
   if(_cards)return _cards;const c=[];
@@ -50,6 +50,7 @@ function allCards(){
   JOINTS.forEach(j=>c.push({id:"j:"+j[0],kind:"joint",j,r:REGIONS[j[1][0]],label:j[0]}));
   LIG.forEach(l=>c.push({id:"l:"+l[0],kind:"lig",l,r:REGIONS[l[1][0]],label:l[0]}));
   CLIN.forEach(q=>c.push({id:"c:"+q[1],kind:"clin",cat:q[0],name:q[1],note:q[2],r:q[0],label:q[1]}));
+  NBCOT.forEach(q=>c.push({id:"n:"+q[1],kind:"nbcot",cat:q[0],name:q[1],note:q[2],r:q[0],label:q[1]}));
   TERMS.forEach(t=>c.push({id:"t:"+t[1],kind:"term",cat:t[0],name:t[1],note:t[2],r:t[0],label:t[1]}));
   return _cards=c;
 }
@@ -85,7 +86,7 @@ function cardFace(c,f){
     :front(c.bone+(COMMON[c.bone]?" ("+COMMON[c.bone].toLowerCase()+")":"")+" · Landmark",c.name,"What is it, and what attaches here?");
   if(c.kind==="joint"){const j=c.j;return f?back(j[0],jointBody(j),whereJ(j[0])):front(c.r+" · Joint",j[0],"Type, movements, and bones.",COMMON[j[0]])}
   if(c.kind==="lig"){const l=c.l;return f?back(l[0],ligBody(l),whereR(l[1])):front(c.r+" · Ligament",l[0],"Attachments and role.",COMMON[l[0]])}
-  return f?back(c.cat,`<div class="big" style="font-size:23px;margin-bottom:12px">${esc(c.name)}</div>`+(c.kind==="clin"?plainRow(PLAIN_C[c.name])+row("Details",c.note):`<div class="row"><span>${esc(c.note)}</span></div>`)):front(c.cat,c.name,c.kind==="clin"?"What does it look like, and what does the OT do?":"Define it.");
+  return f?back(c.cat,`<div class="big" style="font-size:23px;margin-bottom:12px">${esc(c.name)}</div>`+(c.kind==="clin"?plainRow(PLAIN_C[c.name])+row("Details",c.note):`<div class="row"><span>${gl(c.note)}</span></div>`)):front(c.cat,c.name,c.kind==="clin"?"What does it look like, and what does the OT do?":c.kind==="nbcot"?"Recall the key points.":"Define it.");
 }
 
 /* ============================ STUDY ============================ */
@@ -158,7 +159,9 @@ const QGEN={
   clin(){const c=pick(CLIN);const d=near(CLIN.filter(y=>y!==c),y=>y[0]===c[0],y=>y[1]).slice(0,3);
     return{k:"c"+c[1],card:"c:"+c[1],q:"Which does this describe?",quote:c[2],a:c[1],opts:d.map(y=>y[1]),ex:c[1]+"."}}
 };
-const QTOPICS=[["muscle","Muscles",["nerve","field","field"]],["diagram","Figure ID",["diagram","diagram"]],["move","Movements",["move"]],["skel","Bones, joints, ligaments",["bone","jtype","lig"]],["clin","OT clinical",["clin","clin"]],["term","Terminology",["term"]]];
+QGEN.nbcot=function(){const c=pick(NBCOT);const d=near(NBCOT.filter(y=>y!==c),y=>y[0]===c[0],y=>y[1]).slice(0,3);
+  return{k:"n"+c[1],card:"n:"+c[1],q:"Which topic does this describe?",quote:c[2],a:c[1],opts:d.map(y=>y[1]),ex:c[1]+"."}};
+const QTOPICS=[["muscle","Muscles",["nerve","field","field"]],["diagram","Figure ID",["diagram","diagram"]],["move","Movements",["move"]],["skel","Bones, joints, ligaments",["bone","jtype","lig"]],["clin","OT clinical",["clin","clin"]],["nbcot","NBCOT prep",["nbcot","nbcot","nbcot"]],["term","Terminology",["term"]]];
 function startQuiz(){
   const types=[];QTOPICS.forEach(t=>{if(S.qtopics[t[0]])types.push(...t[2])});if(!types.length)return;
   const qs=[],seen=new Set();let guard=0;
@@ -250,7 +253,7 @@ function showOnAtlas(n){const mp=FIG.MAP[n];if(!mp)return;const own=(mp.own||[])
 
 /* ============================ LIBRARY ============================ */
 function renderLib(){
-  const cats=[["muscle","Muscles"],["move","Movements"],["bone","Bones"],["joint","Joints"],["lig","Ligaments"],["clin","OT clinical"],["term","Terminology"]];
+  const cats=[["muscle","Muscles"],["move","Movements"],["bone","Bones"],["joint","Joints"],["lig","Ligaments"],["clin","OT clinical"],["nbcot","NBCOT prep"],["term","Terminology"]];
   $("#main").innerHTML=`<div class="bar"><span class="seg">${cats.map(o=>`<button class="${S.browse===o[0]?"on":""}" data-v="${o[0]}">${o[1]}</button>`).join("")}</span></div>
   <div class="bar"><input type="search" id="q" placeholder="Search by name, attachment, action, nerve…" value="${esc(S.q)}"></div><div id="list"></div>`;
   $$("#main .seg button").forEach(b=>b.onclick=()=>{S.browse=b.dataset.v;renderLib()});
@@ -265,7 +268,7 @@ function fillList(){
   else if(S.browse==="bone")out=BONES.filter(b=>has(b.n+" "+b.intro+" "+b.L.map(l=>l.join(" ")).join(" "))).map(b=>item(b.n,b.r,`<div class="back"><div class="txt">${boneBody(b)}</div>${whereB(b.n,"sm")}</div>`)).join("");
   else if(S.browse==="joint")out=JOINTS.filter(j=>has(j.flat().join(" "))).map(j=>item(j[0],regNames(j[1]),`<div class="back"><div class="txt">${jointBody(j)}</div>${whereJ(j[0],"sm")}</div>`)).join("");
   else if(S.browse==="lig")out=LIG.filter(l=>has(l.flat().join(" "))).map(l=>item(l[0],regNames(l[1]),ligBody(l))).join("");
-  else{const src=S.browse==="clin"?CLIN:TERMS;out=grouped(src.filter(t=>has(t.join(" "))),t=>t[0],t=>`<div class="it open"><div class="hd"><strong>${esc(t[1])}</strong></div><div class="bd">${S.browse==="clin"?plainRow(PLAIN_C[t[1]])+row("Details",t[2]):esc(t[2])}</div></div>`)}
+  else{const src=S.browse==="clin"?CLIN:S.browse==="nbcot"?NBCOT:TERMS;out=grouped(src.filter(t=>has(t.join(" "))),t=>t[0],t=>`<div class="it open"><div class="hd"><strong>${esc(t[1])}</strong></div><div class="bd">${S.browse==="clin"?plainRow(PLAIN_C[t[1]])+row("Details",t[2]):gl(t[2])}</div></div>`)}
   $("#list").innerHTML=out||`<div class="empty">No matches.</div>`;wireHd();
   $$("#list [data-show]").forEach(a=>a.onclick=e=>{e.preventDefault();showOnAtlas(a.dataset.show)});
 }
@@ -281,7 +284,7 @@ function renderProgress(){
     <div class="bar" style="gap:4px"><span style="color:var(--mute);font-size:14px;margin-right:6px">Weakest areas:</span>${Object.entries(byR).sort((a,b)=>b[1]-a[1]).map(([r,n])=>`<span class="pill">${esc(r)} · ${n}</span>`).join("")}</div>`
     +missed.map(c=>`<div class="fcl"><div><strong>${esc(c.label)}</strong><br><small>${esc(c.r)}</small></div><div class="mc">missed ${P[c.id].m}×</div></div>`).join("");
   else h+=`<div class="empty">Nothing in the missed pile. Cards you miss in Study or Quiz show up here.</div>`;
-  h+=`<h3 class="ph">About the content</h3><div class="note" style="line-height:1.6"><b>This is a study aid, not a primary reference.</b> The muscle, bone, joint, and ligament facts follow standard anatomy texts (Moore, Gray's, Kendall, OpenStax), and the clinical deck follows common OT references. Sources disagree on some details, most often spinal root levels, exact splinting angles, ROM norms, and which muscles count as prime movers versus assistants. Where a card says "about" or "sources vary", that is why. If something here conflicts with her NBCOT prep materials, trust those.<br><br>The figure is a hand-drawn schematic with correct relative positions of the superficial muscles and bones. Words with a dotted underline are glossary terms: tap or hover for a plain definition. It is for learning where things are, not a substitute for an atlas plate. The 3D model tab uses a real scan-based model (BodyParts3D), which is male only and is missing a few muscles; the note under the viewer lists them. Deep muscles are shown as hatching over the muscle that covers them. The female and male figures have the same muscles and bones; they differ in proportions (shoulder and rib cage width, pelvis width), and the pelvis and knee notes describe the real skeletal differences.<br><br>Progress is saved in this browser on this device only; use the backup below to protect it.</div>
+  h+=`<h3 class="ph">About the content</h3><div class="note" style="line-height:1.6"><b>This is a study aid, not a primary reference.</b> The muscle, bone, joint, and ligament facts follow standard anatomy texts (Moore, Gray's, Kendall, OpenStax), and the clinical and NBCOT exam prep decks follow common OT references (OTPF-4 and standard OT textbooks). The NBCOT deck is general exam content written for this app; it is not NBCOT material and this app is not affiliated with NBCOT. Sources disagree on some details, most often spinal root levels, exact splinting angles, ROM norms, and which muscles count as prime movers versus assistants. Where a card says "about" or "sources vary", that is why. If something here conflicts with her NBCOT prep materials, trust those.<br><br>The figure is a hand-drawn schematic with correct relative positions of the superficial muscles and bones. Words with a dotted underline are glossary terms: tap or hover for a plain definition. It is for learning where things are, not a substitute for an atlas plate. The 3D model tab uses a real scan-based model (BodyParts3D), which is male only and is missing a few muscles; the note under the viewer lists them. Deep muscles are shown as hatching over the muscle that covers them. The female and male figures have the same muscles and bones; they differ in proportions (shoulder and rib cage width, pelvis width), and the pelvis and knee notes describe the real skeletal differences.<br><br>Progress is saved in this browser on this device only; use the backup below to protect it.</div>
   <h3 class="ph">Back up your progress</h3><div class="note">Progress lives in this browser. Browsers can clear it (private windows, "clear website data", or long periods without opening the app), so save a backup file now and then. A backup can also move your progress to another computer or phone.<br><span id="bkinfo" style="color:var(--mute)"></span></div>
   <div class="bar"><button class="btn pri" id="pexport">Save backup file</button><button class="btn" id="pimport">Restore from backup…</button><input type="file" id="pfile" accept=".json,application/json" style="display:none"><button class="btn bad" id="preset" style="margin-left:auto">Reset all progress</button></div>`;
   $("#main").innerHTML=h;

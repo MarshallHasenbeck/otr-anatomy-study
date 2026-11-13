@@ -6,7 +6,7 @@ A free, offline-capable study app for functional anatomy, built for occupational
 
 ## What it has
 
-- **Study**: flashcards for muscles (origin, insertion, action, nerve), bone landmarks, joints, ligaments, movements, terminology, and OT clinical anatomy. Missed cards come back first.
+- **Study**: flashcards for muscles (origin, insertion, action, nerve), bone landmarks, joints, ligaments, movements, terminology, OT clinical anatomy, and a general NBCOT OTR exam prep deck (models, neuro, safety precautions, assessments, pediatrics, mental health, ethics). Missed cards come back first.
 - **Quiz**: multiple choice generated from the same facts, including "name the highlighted muscle".
 - **Body atlas**: clickable front and back figures (female and male proportions), muscles and skeleton.
 - **3D model**: rotate, zoom, and click a real scan-based body for the same card info.

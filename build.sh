@@ -18,7 +18,7 @@ cat <<'EOF'
 </head>
 <body>
 <aside>
-  <div class="brand"><b>OTR Anatomy Study</b><span>Functional anatomy for OT boards</span></div>
+  <div class="brand"><b>OTR Anatomy Study</b><span>Anatomy and NBCOT OTR exam prep</span></div>
   <nav id="nav">
     <button data-t="study" class="on">Study</button>
     <button data-t="quiz">Quiz</button>
@@ -47,7 +47,7 @@ cat <<'EOF'
 </div>
 <script>
 EOF
-cat src/data.js src/plain.js src/plain2.js src/common.js src/plain3.js src/clinical.js src/gloss.js src/figure.js src/app.js
+cat src/data.js src/plain.js src/plain2.js src/common.js src/plain3.js src/clinical.js src/nbcot.js src/gloss.js src/figure.js src/app.js
 printf '\nconst MODEL='
 cat 3d/model/model.json
 printf ';\nconst MODEL_B64="'
