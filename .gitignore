@@ -1,0 +1,6 @@
+# raw downloads and unused vendor files (large, not needed to build)
+3d/download/
+3d/vendor/
+# local copy of the built app; index.html is the published one
+OTR Anatomy Study.html
+.DS_Store
